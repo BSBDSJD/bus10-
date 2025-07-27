@@ -178,13 +178,49 @@ const MapView: React.FC<MapViewProps> = ({ onStopSelect }) => {
   const fetchStopInfo = async (stopId: string): Promise<StopInfo | null> => {
     try {
       setLoadingStopInfo(prev => new Set(prev).add(stopId));
-      const response = await fetch(`https://bdnmedia.cat/proxy.php?endpoint=stops/${stopId}`);
-      const data = await response.json();
+      
+      let data = null;
+      if (stopId.length === 4) {
+        // For TMB stops, create mock stop info from existing data
+        const stop = stops.find(s => s.stop_id === stopId);
+        if (stop) {
+          data = {
+            document: {
+              id: parseInt(stopId),
+              name: stop.stop_name,
+              address: stop.stop_name,
+              furniture: 'TMB',
+              stopType: 'TMB',
+              lines: 'TMB Lines',
+              utmx: stop.stop_lat,
+              utmy: stop.stop_lon
+            }
+          };
+        }
+      } else {
+        const response = await fetch(`https://bdnmedia.cat/proxy.php?endpoint=stops/${stopId}`);
+        data = await response.json();
+      }
+      
       setLoadingStopInfo(prev => {
         const newSet = new Set(prev);
         newSet.delete(stopId);
         return newSet;
       });
+      
+      // Update stop with additional info
+      if (data) {
+        setStops(prevStops => 
+          prevStops.map(s => s.stop_id === stopId ? {
+            ...s,
+            lines: data.document.lines,
+            address: data.document.address,
+            furniture: data.document.furniture,
+            stopType: data.document.stopType
+          } : s)
+        );
+      }
+      
       return data;
     } catch (error) {
       console.error('Error fetching stop info:', error);
@@ -198,23 +234,6 @@ const MapView: React.FC<MapViewProps> = ({ onStopSelect }) => {
   };
 
   const handleStopClick = async (stop: Stop) => {
-    const stopInfo = await fetchStopInfo(stop.stop_id);
-    if (stopInfo) {
-      // Update stop with additional info
-      const updatedStop = {
-        ...stop,
-        lines: stopInfo.document.lines,
-        address: stopInfo.document.address,
-        furniture: stopInfo.document.furniture,
-        stopType: stopInfo.document.stopType
-      };
-      
-      // Update stops array
-      setStops(prevStops => 
-        prevStops.map(s => s.stop_id === stop.stop_id ? updatedStop : s)
-      );
-    }
-    
     // Center map on selected stop
     setMapCenter([stop.stop_lat, stop.stop_lon]);
     
@@ -329,10 +348,18 @@ const MapView: React.FC<MapViewProps> = ({ onStopSelect }) => {
                   key={stop.stop_id}
                   position={[stop.stop_lat, stop.stop_lon]}
                   icon={closestStop?.stop_id === stop.stop_id ? closestStopIcon : busStopIcon}
+                 eventHandlers={{
+                   click: () => {
+                     // Fetch stop info when marker is clicked
+                     if (!stop.lines) {
+                       fetchStopInfo(stop.stop_id);
+                     }
+                   }
+                 }}
                 >
                   <Popup>
                     <div className="text-center">
-                      <strong>{stop.stop_name}</strong>
+                      <strong>{stop.lines ? stop.stop_name : 'Carregant...'}</strong>
                       <br />
                       
                       {stop.address && (
@@ -351,7 +378,7 @@ const MapView: React.FC<MapViewProps> = ({ onStopSelect }) => {
                         </div>
                       )}
                       
-                      <span className="text-sm text-gray-600">ID: {stop.stop_id}</span>
+                      {stop.lines && <span className="text-sm text-gray-600">ID: {stop.stop_id}</span>}
                       <br />
                       {closestStop?.stop_id === stop.stop_id && (
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
@@ -361,15 +388,16 @@ const MapView: React.FC<MapViewProps> = ({ onStopSelect }) => {
                       
                       {loadingStopInfo.has(stop.stop_id) ? (
                         <div className="text-xs text-gray-500 mb-2">Carregant informació...</div>
-                      ) : null}
-                      
-                      <button
-                        onClick={() => handleStopClick(stop)}
-                        className="mt-2 bg-yellow-400 text-black px-3 py-1 rounded text-sm hover:bg-yellow-500"
-                        disabled={loadingStopInfo.has(stop.stop_id)}
-                      >
-                        {loadingStopInfo.has(stop.stop_id) ? 'Carregant...' : 'Veure horaris'}
-                      </button>
+                      ) : stop.lines ? (
+                        <button
+                          onClick={() => handleStopClick(stop)}
+                          className="mt-2 bg-yellow-400 text-black px-3 py-1 rounded text-sm hover:bg-yellow-500"
+                        >
+                          Veure horaris
+                        </button>
+                      ) : (
+                        <div className="text-xs text-gray-500 mb-2">Fes clic per carregar informació</div>
+                      )}
                     </div>
                   </Popup>
                 </Marker>

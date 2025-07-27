@@ -129,7 +129,7 @@ const Incidencies: React.FC = () => {
                             <img
                               src={disruption.image}
                               alt={disruption.title}
-                              className="w-full h-48 object-cover rounded-md cursor-pointer"
+                              className="w-full h-48 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => setSelectedImage(disruption.image)}
                             />
                           </div>
@@ -215,7 +215,7 @@ const Incidencies: React.FC = () => {
                                     <img
                                       src={disruption.image}
                                       alt={disruption.title}
-                                      className="w-full max-h-96 object-cover rounded-md cursor-pointer"
+                                      className="w-full h-48 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                                       onClick={() => setSelectedImage(disruption.image)}
                                     />
                                   </div>
@@ -301,7 +301,7 @@ const Incidencies: React.FC = () => {
                 <img
                   src={selectedDisruption.image}
                   alt={selectedDisruption.title}
-                  className="w-full max-h-96 object-contain rounded-md cursor-pointer"
+                  className="w-full max-w-full h-auto max-h-[60vh] object-contain rounded-md cursor-pointer mx-auto block"
                   onClick={() => setSelectedImage(selectedDisruption.image)}
                 />
               </div>

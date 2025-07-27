@@ -204,19 +204,17 @@ const CercaID: React.FC<CercaIDProps> = ({
     setSearchTerm(stop.stop_name);
     setShowSearchResults(false);
     
-    // Immediately search and scroll
+    // Automatically fetch data and scroll
+    fetchBusTimes(true);
+    fetchStopInfo();
+    
+    // Center map on selected stop
+    setMapCenter([stop.stop_lat, stop.stop_lon]);
+    
+    // Scroll to results
     setTimeout(() => {
-      fetchBusTimes(true);
-      fetchStopInfo();
-      
-      // Center map on selected stop
-      setMapCenter([stop.stop_lat, stop.stop_lon]);
-      
-      // Scroll to results
-      setTimeout(() => {
-        scrollToStopInfo();
-      }, 100);
-    }, 0);
+      scrollToStopInfo();
+    }, 100);
   };
 
   useEffect(() => {
@@ -387,21 +385,19 @@ const CercaID: React.FC<CercaIDProps> = ({
     const stop = allStops.find(s => s.stop_id === stopId);
     setSearchTerm(stop ? stop.stop_name : stopId);
     
-    // Immediately search and scroll
+    // Automatically fetch data and scroll
+    fetchBusTimes(true);
+    fetchStopInfo();
+    
+    // Center map on selected stop if found
+    if (stop) {
+      setMapCenter([stop.stop_lat, stop.stop_lon]);
+    }
+    
+    // Scroll to results
     setTimeout(() => {
-      fetchBusTimes(true);
-      fetchStopInfo();
-      
-      // Center map on selected stop if found
-      if (stop) {
-        setMapCenter([stop.stop_lat, stop.stop_lon]);
-      }
-      
-      // Scroll to results
-      setTimeout(() => {
-        scrollToStopInfo();
-      }, 100);
-    }, 0);
+      scrollToStopInfo();
+    }, 100);
   };
 
   const getLineColor = (lineCode: string) => {
@@ -550,14 +546,22 @@ const CercaID: React.FC<CercaIDProps> = ({
                   } else {
                     setStopId(searchTerm);
                   }
+                  fetchBusTimes(true);
+                  fetchStopInfo();
+                  
+                  // Scroll to results after search
+                  setTimeout(() => {
+                    scrollToStopInfo();
+                  }, 100);
+                } else if (stopId) {
+                  fetchBusTimes(true);
+                  fetchStopInfo();
+                  
+                  // Scroll to results after search
+                  setTimeout(() => {
+                    scrollToStopInfo();
+                  }, 100);
                 }
-                fetchBusTimes(true);
-                fetchStopInfo();
-                
-                // Scroll to results after search
-                setTimeout(() => {
-                  scrollToStopInfo();
-                }, 100);
               }}
               disabled={loading}
               className="w-full sm:w-auto bg-yellow-400 text-black px-6 py-2 rounded-lg hover:bg-yellow-500 flex items-center justify-center gap-2 disabled:opacity-50"

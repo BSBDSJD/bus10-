@@ -301,7 +301,7 @@ const Incidencies: React.FC = () => {
                 <img
                   src={selectedDisruption.image}
                   alt={selectedDisruption.title}
-                  className="w-full h-auto rounded-md cursor-pointer mx-auto block"
+                  className="max-w-full h-auto rounded-md cursor-pointer mx-auto block"
                   onClick={() => setSelectedImage(selectedDisruption.image)}
                 />
               </div>
